@@ -1,18 +1,31 @@
 <script setup lang="ts">
-import RouterTransition from '@/components/transitions/RouterTransition.vue';
+//import RouterTransition from '@/components/transitions/RouterTransition.vue';
 import { useGlobalStore } from '@/stores/global.js';
-
+import { ref } from 'vue';
+import WaitVue from './pages/Wait.vue';
+import IngameVue from './pages/Ingame.vue';
+import EndVue from './pages/End.vue';
+enum GameProgress {
+  WAIT,
+  INGAME,
+  END,
+}
+const gameprogress = ref<GameProgress>(0);
+const GameStart = () => {
+  gameprogress.value = GameProgress.INGAME;
+};
+const GameEnd = () => {
+  gameprogress.value = GameProgress.END;
+};
 const globalStore = useGlobalStore();
 </script>
 
 <template>
   <div class="root" :class="{ darkTheme: globalStore.isThemeDark }">
     <main class="root__content">
-      <router-view v-slot="{ Component }" class="root__content__item">
-        <RouterTransition>
-          <component :is="Component" />
-        </RouterTransition>
-      </router-view>
+      <WaitVue v-if="gameprogress === GameProgress.WAIT" @user_ready="() => GameStart()"></WaitVue>
+      <IngameVue v-else-if="gameprogress === GameProgress.INGAME"></IngameVue>
+      <EndVue v-else="gameprogress === GameProgress.END"></EndVue>
     </main>
   </div>
 </template>
@@ -23,20 +36,5 @@ const globalStore = useGlobalStore();
   width: 100%;
   min-height: 100%;
   overflow: hidden;
-
-  &__content {
-    display: flex;
-    justify-content: center;
-
-    width: 100%;
-    min-height: 100vh;
-
-    &__item {
-      width: 100%;
-      max-width: 1200px;
-      min-height: 100%;
-      padding: 60px 50px;
-    }
-  }
 }
 </style>

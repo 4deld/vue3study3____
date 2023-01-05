@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { CardShape, GeneClass, Game } from '../game';
+import { Game, Turn } from '../stores/game';
+import { storeToRefs } from 'pinia';
 const gameobj = Game();
-const { Opponent, GetDefenseValue } = gameobj;
+const turnobj = Turn();
+const { Opponent, User } = storeToRefs(gameobj);
 function c() {
-  GetDefenseValue();
+  gameobj.GetDefenseValue();
 }
 </script>
 

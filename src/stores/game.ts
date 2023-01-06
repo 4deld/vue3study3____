@@ -14,7 +14,7 @@ import { ref, computed } from 'vue';
 // move(Direction.Up) // Ok!
 // move(0) // Ok!
 // move(100) // ㅠ_ㅠ
-const CardShape = {
+export const CardShape = {
   SQUARE: 0,
   CIRCLE: 1,
   TRIANGLE: 2,
@@ -25,7 +25,7 @@ const GeneClass = {
   MAGE: 1,
   ACHER: 2,
 };
-type Values<T> = T[keyof T];
+export type Values<T> = T[keyof T];
 
 export interface Skill {
   id: number;
@@ -46,6 +46,17 @@ export interface Player {
 // ref() → state
 // computed() → getters,setters
 // function() → actions
+export function NumberToShapeImg(s: Values<typeof CardShape>) {
+  if (s == CardShape.SQUARE) {
+    return '/src/assets/Shapes/square.png';
+  } else if (s == CardShape.CIRCLE) {
+    return '/src/assets/Shapes/circle.png';
+  } else if (s == CardShape.TRIANGLE) {
+    return '/src/assets/Shapes/triangle.png';
+  } else {
+    return '/src/assets/Shapes/star.png';
+  }
+}
 export const Turn = defineStore('turn', () => {
   const TurnCnt = ref(0);
   function Random() {
@@ -56,11 +67,19 @@ export const Turn = defineStore('turn', () => {
   for (var j = 0; j < 4; j++) {
     UserCards.value[j] = Random();
   }
+  //User.cards에 접근해야되는데 함수로 써서 넣는건지 아니면 Turn을,,,Game안에넣는건가??
 });
 
 export const Game = defineStore('game', () => {
   // const Opponent: Player = {
   //   class: 'WARRIOR',
+  //   hp: 30,
+  //   defense: 0,
+  //   cards: [],
+  //   skills: [],
+  // };
+  // const User: Player = {
+  //   class: GeneClass.ACHER,
   //   hp: 30,
   //   defense: 0,
   //   cards: [],
@@ -73,13 +92,13 @@ export const Game = defineStore('game', () => {
     cards: [],
     skills: [],
   });
-  const User: Player = {
+  const User = ref<Player>({
     class: GeneClass.ACHER,
     hp: 30,
     defense: 0,
     cards: [],
     skills: [],
-  };
+  });
   const WarriorSkills: Skill[] = [
     {
       id: 0,
@@ -207,6 +226,7 @@ export const Game = defineStore('game', () => {
     },
   ];
   Opponent.value.skills = WarriorSkills;
+  User.value.skills = AcherSkills;
   function GetDefenseValue() {
     Opponent.value.skills[4].damage = Opponent.value.defense;
   }

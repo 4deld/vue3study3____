@@ -69,6 +69,9 @@ console.log(User.value.cards);
 }
 .SkillInfo {
   display: flex;
+  margin: 1vw;
+  font-size: 2vw;
+  border: 0.1vw solid white;
 }
 .CombatImg {
   width: 3vw;

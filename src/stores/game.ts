@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 // const Direction = {
 //   Up: 0,
 //   Down: 1,
@@ -15,6 +15,7 @@ import { ref, computed } from 'vue';
 // move(0) // Ok!
 // move(100) // ㅠ_ㅠ
 export const CardShape = {
+  Q: -1,
   SQUARE: 0,
   CIRCLE: 1,
   TRIANGLE: 2,
@@ -34,6 +35,7 @@ export interface Skill {
   damage: number;
   shield: number;
   heal: number;
+  style: string;
 }
 //interface Skills extends Array<Skill> {}
 export interface Player {
@@ -53,22 +55,12 @@ export function NumberToShapeImg(s: Values<typeof CardShape>) {
     return '/src/assets/Shapes/circle.png';
   } else if (s == CardShape.TRIANGLE) {
     return '/src/assets/Shapes/triangle.png';
-  } else {
+  } else if (s == CardShape.STAR) {
     return '/src/assets/Shapes/star.png';
+  } else {
+    return '/src/assets/Shapes/q.png';
   }
 }
-export const Turn = defineStore('turn', () => {
-  const TurnCnt = ref(0);
-  function Random() {
-    return Math.floor(Math.random() * (4 - 0) + 0);
-  }
-  const UserCards = ref<Values<typeof CardShape>[]>([0, 0, 0, 0]);
-  const OpponentCards = ref<Values<typeof CardShape>[]>([0, 0, 0, 0]);
-  for (var j = 0; j < 4; j++) {
-    UserCards.value[j] = Random();
-  }
-  //User.cards에 접근해야되는데 함수로 써서 넣는건지 아니면 Turn을,,,Game안에넣는건가??
-});
 
 export const Game = defineStore('game', () => {
   // const Opponent: Player = {
@@ -107,6 +99,7 @@ export const Game = defineStore('game', () => {
       damage: 15,
       shield: 0,
       heal: 0,
+      style: '',
     },
     {
       id: 1,
@@ -115,6 +108,7 @@ export const Game = defineStore('game', () => {
       damage: 10,
       shield: 0,
       heal: 0,
+      style: '',
     },
     {
       id: 2,
@@ -123,6 +117,7 @@ export const Game = defineStore('game', () => {
       damage: 0,
       shield: 5,
       heal: 0,
+      style: '',
     },
     {
       id: 3,
@@ -131,6 +126,7 @@ export const Game = defineStore('game', () => {
       damage: 3,
       shield: 3,
       heal: 0,
+      style: '',
     },
     {
       id: 4,
@@ -139,6 +135,7 @@ export const Game = defineStore('game', () => {
       damage: 0, //나의 방어도. 근데 어캐함 이 스킬 쓸때마다 자기 방어도를 불러와야되나
       shield: 0,
       heal: 0,
+      style: '',
     },
   ];
   const MageSkills: Skill[] = [
@@ -149,6 +146,7 @@ export const Game = defineStore('game', () => {
       damage: 15,
       shield: 0,
       heal: 0,
+      style: '',
     },
     {
       id: 1,
@@ -157,6 +155,7 @@ export const Game = defineStore('game', () => {
       damage: 11,
       shield: 0,
       heal: 0,
+      style: '',
     },
     {
       id: 2,
@@ -165,6 +164,7 @@ export const Game = defineStore('game', () => {
       damage: 5, //방어도 없애기
       shield: 0,
       heal: 0,
+      style: '',
     },
     {
       id: 3,
@@ -173,6 +173,7 @@ export const Game = defineStore('game', () => {
       damage: 6,
       shield: 0,
       heal: 0,
+      style: '',
     },
     {
       id: 4,
@@ -181,6 +182,7 @@ export const Game = defineStore('game', () => {
       damage: 0,
       shield: 0,
       heal: 5,
+      style: '',
     },
   ];
   const AcherSkills: Skill[] = [
@@ -191,6 +193,7 @@ export const Game = defineStore('game', () => {
       damage: 11, //방어도 파괴
       shield: 0,
       heal: 0,
+      style: '',
     },
     {
       id: 1,
@@ -199,6 +202,7 @@ export const Game = defineStore('game', () => {
       damage: 10,
       shield: 0,
       heal: 0,
+      style: '',
     },
     {
       id: 2,
@@ -207,6 +211,7 @@ export const Game = defineStore('game', () => {
       damage: 12,
       shield: -3, //내 방어도 -3
       heal: 0,
+      style: '',
     },
     {
       id: 3,
@@ -215,6 +220,7 @@ export const Game = defineStore('game', () => {
       damage: 0,
       shield: 5,
       heal: 0,
+      style: '',
     },
     {
       id: 4,
@@ -223,6 +229,7 @@ export const Game = defineStore('game', () => {
       damage: 4,
       shield: 0,
       heal: 0,
+      style: '',
     },
   ];
   Opponent.value.skills = WarriorSkills;
@@ -231,14 +238,97 @@ export const Game = defineStore('game', () => {
     Opponent.value.skills[4].damage = Opponent.value.defense;
   }
 
+  const TurnCnt = ref(-1);
+  const Timer = ref(15);
+  Opponent.value.cards[0] = -1;
+  function Random() {
+    return Math.floor(Math.random() * (4 - 0) + 0);
+  }
+  //const UserCards = ref<Values<typeof CardShape>[]>([0, 0, 0, 0]);
+  //const OpponentCards = ref<Values<typeof CardShape>[]>([0, 0, 0, 0]);
+  function CountShapes(v: Values<typeof CardShape>[]) {
+    const len = v.length;
+    var CardShapeCount = [0, 0, 0, 0];
+    for (var i = 0; i < len; i++) {
+      CardShapeCount[v[i]] += 1;
+    }
+    return CardShapeCount;
+  }
+  //function a(v: Skill['resources']) {}
+  function SkillAvailable(Player: Array<number>, Skill: Array<number>, mode: boolean) {
+    //mode true->user, false->opponent
+    var flag = false;
+    for (var i = 0; i < 4; i++) {
+      if (Skill[i] != 0) {
+        var k = Player[i] - Skill[i];
+        if (k < 0) {
+          if (mode || k < -1 || flag) {
+            return false;
+          }
+          flag = true;
+        }
+      }
+    }
+    return true;
+  }
+
+  function Turn() {
+    TurnCnt.value += 1;
+    for (var i = 0; i < 5; i++) {
+      Opponent.value.skills[i].style = '';
+      User.value.skills[i].style = '';
+    }
+    for (var j = 0; j < 4; j++) {
+      User.value.cards[j] = Random();
+    }
+    for (var j = 1; j < 4; j++) {
+      Opponent.value.cards[j] = Random();
+    }
+    //inefficient?
+    const UserCardShapeCount = CountShapes(User.value.cards); //SQUARE CIRCLE TRIANGLE STAR
+    const OpponentCardShapeCount = CountShapes(Opponent.value.cards); //SQUARE CIRCLE TRIANGLE STAR
+
+    const UserSkillCnt = User.value.skills.length;
+    for (var i = 0; i < UserSkillCnt; i++) {
+      //Skill에 ShapeCount 저장하는게 더 효율적이긴할듯
+      const SkillCardShapeCount = CountShapes(User.value.skills[i].resources);
+      if (SkillAvailable(UserCardShapeCount, SkillCardShapeCount, true)) {
+        User.value.skills[i].style = 'background-color:gold;';
+      }
+    }
+    const OpponentSkillCnt = Opponent.value.skills.length;
+
+    for (var i = 0; i < OpponentSkillCnt; i++) {
+      //Skill에 ShapeCount 저장하는게 더 효율적이긴할듯
+      const SkillCardShapeCount = CountShapes(Opponent.value.skills[i].resources);
+      if (SkillAvailable(OpponentCardShapeCount, SkillCardShapeCount, false)) {
+        Opponent.value.skills[i].style = 'background-color:silver;';
+      }
+    }
+  }
+  // for (var i = 0; i < 5; i++) {
+  //   watch(User.value.skills[i], (newv, oldv) => {
+  //     if (newv.style != oldv.style) {
+  //     }
+  //   });
+  // }
+  const count = ref(0);
+  watch(
+    () => count,
+    (count, prevCount) => {
+      /* ... */
+    }
+  );
   //턴 변수들 선언 -> watch?
-  //Turn 함수 만들어서 계속 돌리는 식으로 하면 되나 
+  //Turn 함수 만들어서 계속 돌리는 식으로 하면 되나
   //나는 아무것도 못했는데 상대는 어떤 스킬이라도 사용할 수 있는 상태였다 -> 운의 영역이 맞다
   //아니면 내가 사용한 문양은 다음번에 나올 확률이 조금 줄어든다던가 100개씩 넣어놓고
   //사용하면 개수만큼 빠지면 확률이 줄어드는거긴하지
   return {
     Opponent,
     User,
+    TurnCnt,
     GetDefenseValue,
+    Turn,
   };
 });

@@ -1,25 +1,26 @@
 <script setup lang="ts">
-import { Game, Turn, NumberToShapeImg } from '../stores/game';
+import { Game, NumberToShapeImg } from '../stores/game';
 import { storeToRefs } from 'pinia';
 const gameobj = Game();
-const turnobj = Turn();
-const { Opponent, User } = storeToRefs(gameobj);
+const { Opponent, User, TurnCnt } = storeToRefs(gameobj);
+
 function c() {
-  gameobj.GetDefenseValue(); //renew by every turn
+  gameobj.Turn(); //renew by every turn
+  console.log(Opponent.value.cards[0]);
 }
 
 const UserSkills = User.value.skills;
 const OpponentSkills = Opponent.value.skills;
-console.log(User.value.cards);
 </script>
 
 <template>
-  <div class="IngameRoot">
+  <div @click="c()" class="IngameRoot">
+    {{ TurnCnt }}
     <div class="side">
       <div class="Skills">
-        <div v-for="s in UserSkills" class="SkillInfo">
+        <div :style="s.style" v-for="s in UserSkills" class="SkillInfo">
           <div>{{ s.name }}</div>
-          <div class="Shapes">
+          <div class="SkillCardShapes">
             <div v-for="q in s.resources">
               <img class="ShapeImg" :src="NumberToShapeImg(q)" alt="" />
             </div>
@@ -39,7 +40,7 @@ console.log(User.value.cards);
         </div>
       </div>
       <div class="Player">
-        <div>
+        <div class="PlayerCards">
           <div v-for="q in User.cards">
             <img class="ShapeImg" :src="NumberToShapeImg(q)" alt="" />
           </div>
@@ -53,9 +54,9 @@ console.log(User.value.cards);
     <div class="timer">timer</div>
     <div class="side">
       <div class="Skills rightside">
-        <div v-for="s in OpponentSkills" class="SkillInfo">
+        <div :style="s.style" v-for="s in OpponentSkills" class="SkillInfo">
           <div>{{ s.name }}</div>
-          <div class="Shapes">
+          <div class="SkillCardShapes">
             <div v-for="q in s.resources">
               <img class="ShapeImg" :src="NumberToShapeImg(q)" alt="" />
             </div>
@@ -75,8 +76,8 @@ console.log(User.value.cards);
         </div>
       </div>
       <div class="Player">
-        <div>
-          <div v-for="q in User.cards">
+        <div class="PlayerCards">
+          <div v-for="q in Opponent.cards">
             <img class="ShapeImg" :src="NumberToShapeImg(q)" alt="" />
           </div>
         </div>
@@ -146,8 +147,12 @@ console.log(User.value.cards);
 }
 .ShapeImg {
   width: 3vw;
+  margin: 0.1vw;
 }
-.Shapes {
+.SkillCardShapes {
+  display: flex;
+}
+.PlayerCards {
   display: flex;
 }
 </style>

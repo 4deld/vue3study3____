@@ -230,6 +230,12 @@ export const Game = defineStore('game', () => {
   function GetDefenseValue() {
     Opponent.value.skills[4].damage = Opponent.value.defense;
   }
+
+  //턴 변수들 선언 -> watch?
+  //Turn 함수 만들어서 계속 돌리는 식으로 하면 되나 
+  //나는 아무것도 못했는데 상대는 어떤 스킬이라도 사용할 수 있는 상태였다 -> 운의 영역이 맞다
+  //아니면 내가 사용한 문양은 다음번에 나올 확률이 조금 줄어든다던가 100개씩 넣어놓고
+  //사용하면 개수만큼 빠지면 확률이 줄어드는거긴하지
   return {
     Opponent,
     User,

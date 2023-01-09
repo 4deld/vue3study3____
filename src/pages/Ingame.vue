@@ -1,24 +1,24 @@
 <script setup lang="ts">
 import { Game, NumberToShapeImg } from '../stores/game';
 import { storeToRefs } from 'pinia';
+import { ref, computed, watch } from 'vue';
+
 const gameobj = Game();
 const { Opponent, User, TurnCnt } = storeToRefs(gameobj);
-
+const { SelectSkill } = gameobj;
 function c() {
   gameobj.Turn(); //renew by every turn
   console.log(Opponent.value.cards[0]);
 }
-
 const UserSkills = User.value.skills;
 const OpponentSkills = Opponent.value.skills;
 </script>
 
 <template>
-  <div @click="c()" class="IngameRoot">
-    {{ TurnCnt }}
+  <div class="IngameRoot">
     <div class="side">
       <div class="Skills">
-        <div :style="s.style" v-for="s in UserSkills" class="SkillInfo">
+        <div :style="s.style" @click="SelectSkill(s.id)" v-for="s in UserSkills" class="SkillInfo">
           <div>{{ s.name }}</div>
           <div class="SkillCardShapes">
             <div v-for="q in s.resources">
@@ -42,7 +42,7 @@ const OpponentSkills = Opponent.value.skills;
       <div class="Player">
         <div class="PlayerCards">
           <div v-for="q in User.cards">
-            <img class="ShapeImg" :src="NumberToShapeImg(q)" alt="" />
+            <img class="PlayerShapeImg" :src="NumberToShapeImg(q)" alt="" />
           </div>
         </div>
         <div class="playername">Username</div>
@@ -51,7 +51,10 @@ const OpponentSkills = Opponent.value.skills;
         <div>shield</div>
       </div>
     </div>
-    <div class="timer">timer</div>
+    <div class="center">
+      <div @click="c()">timer</div>
+      <div class="Turncnt">{{ TurnCnt }}</div>
+    </div>
     <div class="side">
       <div class="Skills rightside">
         <div :style="s.style" v-for="s in OpponentSkills" class="SkillInfo">
@@ -78,7 +81,7 @@ const OpponentSkills = Opponent.value.skills;
       <div class="Player">
         <div class="PlayerCards">
           <div v-for="q in Opponent.cards">
-            <img class="ShapeImg" :src="NumberToShapeImg(q)" alt="" />
+            <img class="PlayerShapeImg" :src="NumberToShapeImg(q)" alt="" />
           </div>
         </div>
         <div class="playername">PotatoSheep</div>
@@ -109,19 +112,26 @@ const OpponentSkills = Opponent.value.skills;
 .CombatElement {
   display: flex;
 }
-.timer {
+.center {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   width: 10vw;
   height: 100vh;
-  font-size: 9vw;
+  font-size: 4vw;
+}
+.Turncnt {
+  margin-bottom: 30vh;
 }
 .side {
   display: flex;
   flex-direction: column;
   width: 50vw;
   height: 100%;
+}
+.playername {
+  font-size: 3vw;
 }
 .opponentside {
   display: flex;
@@ -149,10 +159,15 @@ const OpponentSkills = Opponent.value.skills;
   width: 3vw;
   margin: 0.1vw;
 }
+.PlayerShapeImg {
+  width: 5vw;
+  margin: 0.1vw;
+}
 .SkillCardShapes {
   display: flex;
 }
 .PlayerCards {
   display: flex;
+  margin-top: 5vh;
 }
 </style>

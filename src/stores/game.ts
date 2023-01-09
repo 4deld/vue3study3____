@@ -237,8 +237,13 @@ export const Game = defineStore('game', () => {
   function GetDefenseValue() {
     Opponent.value.skills[4].damage = Opponent.value.defense;
   }
-
-  const TurnCnt = ref(-1);
+  const UserSelectedSkill = ref(-1);
+  function SelectSkill(Skillid: number) {
+    if (User.value.skills[Skillid].style != '') {
+      User.value.skills[Skillid].style += 'background-color:gold;';
+    }
+  }
+  const TurnCnt = ref(0);
   const Timer = ref(15);
   Opponent.value.cards[0] = -1;
   function Random() {
@@ -255,25 +260,40 @@ export const Game = defineStore('game', () => {
     return CardShapeCount;
   }
   //function a(v: Skill['resources']) {}
-  function SkillAvailable(Player: Array<number>, Skill: Array<number>, mode: boolean) {
-    //mode true->user, false->opponent
-    var flag = false;
+  function UserSkillAvailable(Player: Array<number>, Skill: Array<number>) {
     for (var i = 0; i < 4; i++) {
       if (Skill[i] != 0) {
         var k = Player[i] - Skill[i];
         if (k < 0) {
-          if (mode || k < -1 || flag) {
-            return false;
-          }
-          flag = true;
+          return false;
         }
       }
     }
     return true;
   }
+  function OpponentSkillAvailable(Player: Array<number>, Skill: Array<number>) {
+    //0 -> never, 1-> possible, 2-> certainly
+    var flag = false;
+    for (var i = 0; i < 4; i++) {
+      if (Skill[i] != 0) {
+        var k = Player[i] - Skill[i];
+        if (k < 0) {
+          if (k < -1 || flag) {
+            return 0;
+          }
+          flag = true;
+        }
+      }
+    }
+    if (flag) {
+      return 1;
+    }
+    return 2;
+  }
 
   function Turn() {
     TurnCnt.value += 1;
+    //inefficient?
     for (var i = 0; i < 5; i++) {
       Opponent.value.skills[i].style = '';
       User.value.skills[i].style = '';
@@ -292,8 +312,8 @@ export const Game = defineStore('game', () => {
     for (var i = 0; i < UserSkillCnt; i++) {
       //Skill에 ShapeCount 저장하는게 더 효율적이긴할듯
       const SkillCardShapeCount = CountShapes(User.value.skills[i].resources);
-      if (SkillAvailable(UserCardShapeCount, SkillCardShapeCount, true)) {
-        User.value.skills[i].style = 'background-color:gold;';
+      if (UserSkillAvailable(UserCardShapeCount, SkillCardShapeCount)) {
+        User.value.skills[i].style = 'border:0.1vw solid gold;';
       }
     }
     const OpponentSkillCnt = Opponent.value.skills.length;
@@ -301,14 +321,17 @@ export const Game = defineStore('game', () => {
     for (var i = 0; i < OpponentSkillCnt; i++) {
       //Skill에 ShapeCount 저장하는게 더 효율적이긴할듯
       const SkillCardShapeCount = CountShapes(Opponent.value.skills[i].resources);
-      if (SkillAvailable(OpponentCardShapeCount, SkillCardShapeCount, false)) {
-        Opponent.value.skills[i].style = 'background-color:silver;';
+      if (OpponentSkillAvailable(OpponentCardShapeCount, SkillCardShapeCount) == 1) {
+        Opponent.value.skills[i].style = 'border:0.1vw solid silver;';
+      } else if (OpponentSkillAvailable(OpponentCardShapeCount, SkillCardShapeCount) == 2) {
+        Opponent.value.skills[i].style = 'border:0.1vw solid gold;';
       }
     }
   }
   // for (var i = 0; i < 5; i++) {
   //   watch(User.value.skills[i], (newv, oldv) => {
-  //     if (newv.style != oldv.style) {
+  //     if (newv.style[25]===' ') {//selected
+
   //     }
   //   });
   // }
@@ -324,11 +347,14 @@ export const Game = defineStore('game', () => {
   //나는 아무것도 못했는데 상대는 어떤 스킬이라도 사용할 수 있는 상태였다 -> 운의 영역이 맞다
   //아니면 내가 사용한 문양은 다음번에 나올 확률이 조금 줄어든다던가 100개씩 넣어놓고
   //사용하면 개수만큼 빠지면 확률이 줄어드는거긴하지
+  //전사 실드슬램같은경우 이번 턴의 방어도만큼 때리고 맞는거 그니까 먼저맞고 방어도
+  //줄어들고 때리면 안되지않나 그니까 턴을 전투진행할때 반응형으로 하면 안되려나
   return {
     Opponent,
     User,
     TurnCnt,
     GetDefenseValue,
+    SelectSkill,
     Turn,
   };
 });

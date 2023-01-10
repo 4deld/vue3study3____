@@ -4,10 +4,15 @@ import { storeToRefs } from 'pinia';
 import { ref, computed, watch } from 'vue';
 
 const gameobj = Game();
-const { Opponent, User, TurnCnt, UserHPStyle } = storeToRefs(gameobj);
+const { Opponent, User, TurnCnt, UserHPStyle, OpponentHPStyle } = storeToRefs(gameobj);
 const { SelectSkill, GetDefenseValue } = gameobj;
 function c() {
-  gameobj.Turn(); //renew by every turn
+  gameobj.TurnStart(); //renew by every turn
+  GetDefenseValue();
+  console.log(UserHPStyle.value);
+}
+function d() {
+  gameobj.TurnEnd(); //renew by every turn
   GetDefenseValue();
   console.log(UserHPStyle.value);
 }
@@ -60,7 +65,7 @@ const OpponentSkills = Opponent.value.skills;
     </div>
     <div class="center">
       <div @click="c()">timer</div>
-      <div class="Turncnt">{{ TurnCnt }}</div>
+      <div class="Turncnt" @click="d()">{{ TurnCnt }}</div>
     </div>
     <div class="side">
       <div class="Skills rightside">
@@ -93,7 +98,13 @@ const OpponentSkills = Opponent.value.skills;
         </div>
         <div class="playername">PotatoSheep</div>
         <div><img class="gene" src="../assets/Genes/Gene2.png" alt="" /></div>
-        <div class="healthbar">hp</div>
+        <div class="health_bar">
+          <div class="hit_bar" :style="OpponentHPStyle"></div>
+          <div class="health">
+            <div>{{ Opponent.hp }}</div>
+            <div>/30</div>
+          </div>
+        </div>
         <div>shield</div>
       </div>
     </div>

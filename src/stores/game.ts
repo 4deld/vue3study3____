@@ -44,6 +44,7 @@ export interface Player {
   defense: number;
   cards: Values<typeof CardShape>[];
   skills: Skill[];
+  selected_skill: number;
 }
 // ref() → state
 // computed() → getters,setters
@@ -83,6 +84,7 @@ export const Game = defineStore('game', () => {
     defense: 0,
     cards: [],
     skills: [],
+    selected_skill: -1,
   });
   const User = ref<Player>({
     class: GeneClass.ACHER,
@@ -90,6 +92,7 @@ export const Game = defineStore('game', () => {
     defense: 0,
     cards: [],
     skills: [],
+    selected_skill: -1,
   });
   const WarriorSkills: Skill[] = [
     {
@@ -237,24 +240,24 @@ export const Game = defineStore('game', () => {
   function GetDefenseValue() {
     User.value.hp -= 1;
   }
-  const UserSelectedSkill = ref(-1);
   function SelectSkill(Skillid: number) {
-    //console.log(UserSelectedSkill.value);
-    if (UserSelectedSkill.value != -1) {
-      User.value.skills[UserSelectedSkill.value].style = User.value.skills[
-        UserSelectedSkill.value
+    //console.log(User.value.selected_skill);
+    if (User.value.selected_skill != -1) {
+      User.value.skills[User.value.selected_skill].style = User.value.skills[
+        User.value.selected_skill
       ].style.replace('background-color:gold;', '');
     }
-    if (Skillid == UserSelectedSkill.value) {
-      UserSelectedSkill.value = -1;
+    if (Skillid == User.value.selected_skill) {
+      User.value.selected_skill = -1;
     } else if (User.value.skills[Skillid].style != '') {
       User.value.skills[Skillid].style += 'background-color:gold;';
-      UserSelectedSkill.value = Skillid;
+      User.value.selected_skill = Skillid;
     }
   }
   const TurnCnt = ref(0);
   const Timer = ref(15);
   const UserHPStyle = ref('width:0;');
+  const OpponentHPStyle = ref('width:0;');
   Opponent.value.cards[0] = -1;
   function Random() {
     return Math.floor(Math.random() * (4 - 0) + 0);
@@ -300,20 +303,7 @@ export const Game = defineStore('game', () => {
     }
     return 2;
   }
-
-  function Turn() {
-    TurnCnt.value += 1;
-    //inefficient?
-    for (var i = 0; i < 5; i++) {
-      Opponent.value.skills[i].style = '';
-      User.value.skills[i].style = '';
-    }
-    for (var j = 0; j < 4; j++) {
-      User.value.cards[j] = Random();
-    }
-    for (var j = 1; j < 4; j++) {
-      Opponent.value.cards[j] = Random();
-    }
+  function ShowAvailableSkill() {
     //inefficient?
     const UserCardShapeCount = CountShapes(User.value.cards); //SQUARE CIRCLE TRIANGLE STAR
     const OpponentCardShapeCount = CountShapes(Opponent.value.cards); //SQUARE CIRCLE TRIANGLE STAR
@@ -336,6 +326,34 @@ export const Game = defineStore('game', () => {
       } else if (OpponentSkillAvailable(OpponentCardShapeCount, SkillCardShapeCount) == 2) {
         Opponent.value.skills[i].style = 'border:0.1vw solid gold;';
       }
+    }
+  }
+  function Init() {
+    TurnCnt.value = 0;
+  }
+  function TurnStart() {
+    TurnCnt.value += 1;
+    //inefficient?
+    for (var i = 0; i < 5; i++) {
+      Opponent.value.skills[i].style = '';
+      User.value.skills[i].style = '';
+    }
+    for (var j = 0; j < 4; j++) {
+      User.value.cards[j] = Random();
+    }
+    for (var j = 1; j < 4; j++) {
+      Opponent.value.cards[j] = Random();
+    }
+    ShowAvailableSkill();
+  }
+  function TurnEnd() {
+    if (User.value.selected_skill != -1) {
+      Opponent.value.hp -= User.value.skills[User.value.selected_skill].damage;
+      OpponentHPStyle.value = 'width:' + 16 * (1 - Opponent.value.hp / 30) + 'vw;';
+    }
+    if (Opponent.value.selected_skill != -1) {
+      User.value.hp -= Opponent.value.skills[Opponent.value.selected_skill].damage;
+      UserHPStyle.value = 'width:' + 16 * (1 - User.value.hp / 30) + 'vw;';
     }
   }
   // for (var i = 0; i < 5; i++) {
@@ -366,9 +384,11 @@ export const Game = defineStore('game', () => {
     Opponent,
     User,
     UserHPStyle,
+    OpponentHPStyle,
     TurnCnt,
     GetDefenseValue,
     SelectSkill,
-    Turn,
+    TurnStart,
+    TurnEnd,
   };
 });

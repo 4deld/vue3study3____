@@ -235,16 +235,26 @@ export const Game = defineStore('game', () => {
   Opponent.value.skills = WarriorSkills;
   User.value.skills = AcherSkills;
   function GetDefenseValue() {
-    Opponent.value.skills[4].damage = Opponent.value.defense;
+    User.value.hp -= 1;
   }
   const UserSelectedSkill = ref(-1);
   function SelectSkill(Skillid: number) {
-    if (User.value.skills[Skillid].style != '') {
+    //console.log(UserSelectedSkill.value);
+    if (UserSelectedSkill.value != -1) {
+      User.value.skills[UserSelectedSkill.value].style = User.value.skills[
+        UserSelectedSkill.value
+      ].style.replace('background-color:gold;', '');
+    }
+    if (Skillid == UserSelectedSkill.value) {
+      UserSelectedSkill.value = -1;
+    } else if (User.value.skills[Skillid].style != '') {
       User.value.skills[Skillid].style += 'background-color:gold;';
+      UserSelectedSkill.value = Skillid;
     }
   }
   const TurnCnt = ref(0);
   const Timer = ref(15);
+  const UserHPStyle = ref('width:0;');
   Opponent.value.cards[0] = -1;
   function Random() {
     return Math.floor(Math.random() * (4 - 0) + 0);
@@ -342,6 +352,9 @@ export const Game = defineStore('game', () => {
       /* ... */
     }
   );
+  //watch(User.value, () => (UserHPStyle.value = 'width:' + 16 * (1 - UserHP.value / 30) + 'vw;'));
+  //근데 이렇게쓰면 User.value.hp 말고 다른거 바뀔때도 실행되는거 아닌가?
+
   //턴 변수들 선언 -> watch?
   //Turn 함수 만들어서 계속 돌리는 식으로 하면 되나
   //나는 아무것도 못했는데 상대는 어떤 스킬이라도 사용할 수 있는 상태였다 -> 운의 영역이 맞다
@@ -352,6 +365,7 @@ export const Game = defineStore('game', () => {
   return {
     Opponent,
     User,
+    UserHPStyle,
     TurnCnt,
     GetDefenseValue,
     SelectSkill,

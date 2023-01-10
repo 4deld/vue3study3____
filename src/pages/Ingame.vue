@@ -4,11 +4,12 @@ import { storeToRefs } from 'pinia';
 import { ref, computed, watch } from 'vue';
 
 const gameobj = Game();
-const { Opponent, User, TurnCnt } = storeToRefs(gameobj);
-const { SelectSkill } = gameobj;
+const { Opponent, User, TurnCnt, UserHPStyle } = storeToRefs(gameobj);
+const { SelectSkill, GetDefenseValue } = gameobj;
 function c() {
   gameobj.Turn(); //renew by every turn
-  console.log(Opponent.value.cards[0]);
+  GetDefenseValue();
+  console.log(UserHPStyle.value);
 }
 const UserSkills = User.value.skills;
 const OpponentSkills = Opponent.value.skills;
@@ -47,7 +48,13 @@ const OpponentSkills = Opponent.value.skills;
         </div>
         <div class="playername">Username</div>
         <div><img class="gene" src="../assets/Genes/Gene2.png" alt="" /></div>
-        <div>hp</div>
+        <div class="health_bar">
+          <div class="hit_bar" :style="UserHPStyle"></div>
+          <div class="health">
+            <div>{{ User.hp }}</div>
+            <div>/30</div>
+          </div>
+        </div>
         <div>shield</div>
       </div>
     </div>
@@ -86,7 +93,7 @@ const OpponentSkills = Opponent.value.skills;
         </div>
         <div class="playername">PotatoSheep</div>
         <div><img class="gene" src="../assets/Genes/Gene2.png" alt="" /></div>
-        <div>hp</div>
+        <div class="healthbar">hp</div>
         <div>shield</div>
       </div>
     </div>
@@ -102,6 +109,7 @@ const OpponentSkills = Opponent.value.skills;
 .SkillInfo {
   display: flex;
   width: 30vw;
+  height: 6vh;
   margin: 0.1vw;
   font-size: 2vw;
   border: 0.1vw solid white;
@@ -154,6 +162,35 @@ const OpponentSkills = Opponent.value.skills;
 }
 .gene {
   width: 10vw;
+}
+.health {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4vw;
+  height: 4vh;
+  margin-top: -2vh;
+  margin-left: -2vw;
+  font-size: 1.3vw;
+}
+.health_bar {
+  position: relative;
+  width: 16.4vw;
+  height: 4vh;
+  background: rgb(245, 74, 74);
+  border: 0.2vw solid white;
+  border-radius: 5px;
+}
+
+.hit_bar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: black;
 }
 .ShapeImg {
   width: 3vw;

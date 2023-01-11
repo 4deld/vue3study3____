@@ -255,7 +255,9 @@ export const Game = defineStore('game', () => {
     }
   }
   const TurnCnt = ref(0);
-  const Timer = ref(15);
+  const sec = ref(0);
+  const TimerStyle = ref('height:' + sec.value + 'vh;');
+
   const UserHPStyle = ref('width:0;');
   const OpponentHPStyle = ref('width:0;');
   Opponent.value.cards[0] = -1;
@@ -333,6 +335,15 @@ export const Game = defineStore('game', () => {
   }
   function TurnStart() {
     TurnCnt.value += 1;
+    sec.value = 0;
+    const Timer = setInterval(function () {
+      if (sec.value === 800) {
+        clearInterval(Timer);
+      } else {
+        sec.value += 1;
+        console.log(TimerStyle.value);
+      }
+    }, 10);
     //inefficient?
     for (var i = 0; i < 5; i++) {
       Opponent.value.skills[i].style = '';
@@ -370,6 +381,8 @@ export const Game = defineStore('game', () => {
       /* ... */
     }
   );
+  watch(sec, () => (TimerStyle.value = 'height:' + ((sec.value / 8) * 60) / 100 + 'vh;'));
+
   //watch(User.value, () => (UserHPStyle.value = 'width:' + 16 * (1 - UserHP.value / 30) + 'vw;'));
   //근데 이렇게쓰면 User.value.hp 말고 다른거 바뀔때도 실행되는거 아닌가?
 
@@ -386,6 +399,7 @@ export const Game = defineStore('game', () => {
     UserHPStyle,
     OpponentHPStyle,
     TurnCnt,
+    TimerStyle,
     GetDefenseValue,
     SelectSkill,
     TurnStart,

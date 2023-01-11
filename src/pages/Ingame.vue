@@ -4,7 +4,7 @@ import { storeToRefs } from 'pinia';
 import { ref, computed, watch } from 'vue';
 
 const gameobj = Game();
-const { Opponent, User, TurnCnt, UserHPStyle, OpponentHPStyle } = storeToRefs(gameobj);
+const { Opponent, User, TurnCnt, UserHPStyle, OpponentHPStyle, TimerStyle } = storeToRefs(gameobj);
 const { SelectSkill, GetDefenseValue } = gameobj;
 function c() {
   gameobj.TurnStart(); //renew by every turn
@@ -64,8 +64,10 @@ const OpponentSkills = Opponent.value.skills;
       </div>
     </div>
     <div class="center">
-      <div @click="c()">timer</div>
       <div class="Turncnt" @click="d()">{{ TurnCnt }}</div>
+      <div class="timer_bar" @click="c()">
+        <div class="count_bar" :style="TimerStyle"></div>
+      </div>
     </div>
     <div class="side">
       <div class="Skills rightside">
@@ -141,7 +143,7 @@ const OpponentSkills = Opponent.value.skills;
   font-size: 4vw;
 }
 .Turncnt {
-  margin-bottom: 30vh;
+  margin-top: 4vh;
 }
 .side {
   display: flex;
@@ -174,18 +176,21 @@ const OpponentSkills = Opponent.value.skills;
 .gene {
   width: 10vw;
 }
-.health {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.timer_bar {
+  position: relative;
   width: 4vw;
-  height: 4vh;
-  margin-top: -2vh;
-  margin-left: -2vw;
-  font-size: 1.3vw;
+  height: 60vh;
+  margin-bottom: 10vh;
+  background-color: black;
+}
+.count_bar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 0;
+  background: red;
 }
 .health_bar {
   position: relative;
@@ -202,6 +207,19 @@ const OpponentSkills = Opponent.value.skills;
   right: 0;
   bottom: 0;
   background: black;
+}
+.health {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4vw;
+  height: 4vh;
+  margin-top: -2vh;
+  margin-left: -2vw;
+  font-size: 1.3vw;
 }
 .ShapeImg {
   width: 3vw;

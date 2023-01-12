@@ -5,7 +5,7 @@ import { ref, computed, watch } from 'vue';
 
 const gameobj = Game();
 const { Opponent, User, TurnCnt, UserHPStyle, OpponentHPStyle, TimerStyle } = storeToRefs(gameobj);
-const { SelectSkill, GetDefenseValue } = gameobj;
+const { SelectSkill, GetDefenseValue, Init } = gameobj;
 function c() {
   gameobj.TurnStart(); //renew by every turn
   GetDefenseValue();
@@ -18,6 +18,7 @@ function d() {
 }
 const UserSkills = User.value.skills;
 const OpponentSkills = Opponent.value.skills;
+Init();
 </script>
 
 <template>

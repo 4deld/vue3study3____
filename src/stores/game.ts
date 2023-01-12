@@ -332,10 +332,11 @@ export const Game = defineStore('game', () => {
   }
   function Init() {
     TurnCnt.value = 0;
+    sec.value = 0;
+    TurnStart();
   }
   function TurnStart() {
     TurnCnt.value += 1;
-    sec.value = 0;
     const Timer = setInterval(function () {
       if (sec.value === 800) {
         clearInterval(Timer);
@@ -358,6 +359,7 @@ export const Game = defineStore('game', () => {
     ShowAvailableSkill();
   }
   function TurnEnd() {
+    sec.value = 0;
     if (User.value.selected_skill != -1) {
       Opponent.value.hp -= User.value.skills[User.value.selected_skill].damage;
       OpponentHPStyle.value = 'width:' + 16 * (1 - Opponent.value.hp / 30) + 'vw;';
@@ -402,6 +404,7 @@ export const Game = defineStore('game', () => {
     TimerStyle,
     GetDefenseValue,
     SelectSkill,
+    Init,
     TurnStart,
     TurnEnd,
   };

@@ -4,18 +4,26 @@ import { storeToRefs } from 'pinia';
 import { ref, computed, watch } from 'vue';
 
 const gameobj = Game();
-const { Opponent, User, TurnCnt, UserHPStyle, OpponentHPStyle, TimerStyle } = storeToRefs(gameobj);
-const { SelectSkill, GetDefenseValue, Init } = gameobj;
+const {
+  Opponent,
+  User,
+  TurnCnt,
+  UserHPStyle,
+  OpponentHPStyle,
+  TimerStyle,
+  UserGeneSrc,
+  OpponentGeneSrc,
+} = storeToRefs(gameobj);
+const { SelectSkill, Init, User_Ready } = gameobj;
 function c() {
   gameobj.TurnStart(); //renew by every turn
-  GetDefenseValue();
   console.log(UserHPStyle.value);
 }
 function d() {
   gameobj.TurnEnd(); //renew by every turn
-  GetDefenseValue();
   console.log(UserHPStyle.value);
 }
+
 const UserSkills = User.value.skills;
 const OpponentSkills = Opponent.value.skills;
 Init();
@@ -53,7 +61,9 @@ Init();
           </div>
         </div>
         <div class="playername">Username</div>
-        <div><img class="gene" src="../assets/Genes/Gene2.png" alt="" /></div>
+        <div>
+          <img @click="User_Ready()" class="gene" :src="UserGeneSrc" alt="" />
+        </div>
         <div class="health_bar">
           <div class="hit_bar" :style="UserHPStyle"></div>
           <div class="health">
@@ -100,7 +110,7 @@ Init();
           </div>
         </div>
         <div class="playername">PotatoSheep</div>
-        <div><img class="gene" src="../assets/Genes/Gene2.png" alt="" /></div>
+        <div><img class="gene" :src="OpponentGeneSrc" alt="" /></div>
         <div class="health_bar">
           <div class="hit_bar" :style="OpponentHPStyle"></div>
           <div class="health">

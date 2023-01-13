@@ -64,6 +64,8 @@ export function NumberToShapeImg(s: Values<typeof CardShape>) {
 }
 
 export const Game = defineStore('game', () => {
+  const GameEnd = ref(false);
+  const TurnTimerEnd = ref(true);
   // const Opponent: Player = {
   //   class: 'WARRIOR',
   //   hp: 30,
@@ -235,22 +237,35 @@ export const Game = defineStore('game', () => {
       style: '',
     },
   ];
+  const UserGeneSrc = ref('src/assets/Genes/Gene2.png');
+  const UserReady = ref(false);
+  const OpponentGeneSrc = ref('src/assets/Genes/Gene0.png');
+  const OpponentReady = ref(false);
+  function User_Ready() {
+    UserGeneSrc.value = 'src/assets/Genes/Gene2_ready.png';
+    UserReady.value = true;
+    setTimeout(() => {
+      OpponentGeneSrc.value = 'src/assets/Genes/Gene0_ready.png';
+      OpponentReady.value = true;
+    }, 500);
+    // setTimeout(() => {
+    //   emit('user_ready');
+    // }, 1000);
+  }
   Opponent.value.skills = WarriorSkills;
   User.value.skills = AcherSkills;
-  function GetDefenseValue() {
-    User.value.hp -= 1;
-  }
   function SelectSkill(Skillid: number) {
     //console.log(User.value.selected_skill);
     if (User.value.selected_skill != -1) {
-      User.value.skills[User.value.selected_skill].style = User.value.skills[
-        User.value.selected_skill
-      ].style.replace('background-color:gold;', '');
+      // User.value.skills[User.value.selected_skill].style = User.value.skills[
+      //   User.value.selected_skill
+      // ].style.replace('background-color:#b9f2ff ;', '');
+      User.value.skills[User.value.selected_skill].style = 'border:0.1vw solid 	#ffd700;';
     }
     if (Skillid == User.value.selected_skill) {
       User.value.selected_skill = -1;
     } else if (User.value.skills[Skillid].style != '') {
-      User.value.skills[Skillid].style += 'background-color:gold;';
+      User.value.skills[Skillid].style += 'background-color:#b9f2ff ;';
       User.value.selected_skill = Skillid;
     }
   }
@@ -315,7 +330,7 @@ export const Game = defineStore('game', () => {
       //Skill에 ShapeCount 저장하는게 더 효율적이긴할듯
       const SkillCardShapeCount = CountShapes(User.value.skills[i].resources);
       if (UserSkillAvailable(UserCardShapeCount, SkillCardShapeCount)) {
-        User.value.skills[i].style = 'border:0.1vw solid gold;';
+        User.value.skills[i].style = 'border:0.1vw solid 	#ffd700;';
       }
     }
     const OpponentSkillCnt = Opponent.value.skills.length;
@@ -324,27 +339,24 @@ export const Game = defineStore('game', () => {
       //Skill에 ShapeCount 저장하는게 더 효율적이긴할듯
       const SkillCardShapeCount = CountShapes(Opponent.value.skills[i].resources);
       if (OpponentSkillAvailable(OpponentCardShapeCount, SkillCardShapeCount) == 1) {
-        Opponent.value.skills[i].style = 'border:0.1vw solid silver;';
+        Opponent.value.skills[i].style = 'border:0.1vw solid #B87333;';
       } else if (OpponentSkillAvailable(OpponentCardShapeCount, SkillCardShapeCount) == 2) {
-        Opponent.value.skills[i].style = 'border:0.1vw solid gold;';
+        Opponent.value.skills[i].style = 'border:0.1vw solid 	#ffd700;';
       }
     }
   }
+  var Timer = setInterval(function () {});
   function Init() {
-    TurnCnt.value = 0;
+    GameEnd.value = false;
+    TurnTimerEnd.value = false;
     sec.value = 0;
+    TurnCnt.value = 0;
     TurnStart();
   }
   function TurnStart() {
     TurnCnt.value += 1;
-    const Timer = setInterval(function () {
-      if (sec.value === 800) {
-        clearInterval(Timer);
-      } else {
-        sec.value += 1;
-        console.log(TimerStyle.value);
-      }
-    }, 10);
+    TurnTimerEnd.value = false;
+
     //inefficient?
     for (var i = 0; i < 5; i++) {
       Opponent.value.skills[i].style = '';
@@ -368,6 +380,10 @@ export const Game = defineStore('game', () => {
       User.value.hp -= Opponent.value.skills[Opponent.value.selected_skill].damage;
       UserHPStyle.value = 'width:' + 16 * (1 - User.value.hp / 30) + 'vw;';
     }
+
+    setTimeout(() => {
+      TurnStart();
+    }, 500);
   }
   // for (var i = 0; i < 5; i++) {
   //   watch(User.value.skills[i], (newv, oldv) => {
@@ -376,11 +392,44 @@ export const Game = defineStore('game', () => {
   //     }
   //   });
   // }
+  const PlayersReady = ref(false);
   const count = ref(0);
   watch(
     () => count,
     (count, prevCount) => {
       /* ... */
+    }
+  );
+  watch(TurnTimerEnd, (New, Old) => {
+    console.log(New, Old);
+    if (Old == true) {
+      Timer = setInterval(function () {
+        if (sec.value === 800) {
+          clearInterval(Timer);
+          TurnTimerEnd.value = true;
+          setTimeout(() => {
+            TurnEnd();
+          }, 500);
+        } else {
+          sec.value += 1;
+          //console.log(TimerStyle.value);
+        }
+      }, 10);
+    } else {
+      clearInterval(Timer);
+    }
+  });
+  watch(GameEnd, (New, Old) => console.log(New, Old));
+  watch(
+    [UserReady, OpponentReady], //둘 중 하나만 바뀌어도 실행
+    ([NewUserReady, NewOpponentReady], [PrvUserReady, PrvOpponentReady]) => {
+      //console.log(NewUserReady, NewOpponentReady, PrvUserReady, PrvOpponentReady);
+      if (NewUserReady && NewOpponentReady) {
+        TurnTimerEnd.value = true;
+        setTimeout(() => {
+          TurnEnd();
+        }, 500);
+      }
     }
   );
   watch(sec, () => (TimerStyle.value = 'height:' + ((sec.value / 8) * 60) / 100 + 'vh;'));
@@ -402,7 +451,9 @@ export const Game = defineStore('game', () => {
     OpponentHPStyle,
     TurnCnt,
     TimerStyle,
-    GetDefenseValue,
+    UserGeneSrc,
+    OpponentGeneSrc,
+    User_Ready,
     SelectSkill,
     Init,
     TurnStart,

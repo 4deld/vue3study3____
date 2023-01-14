@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-const emit = defineEmits(['user_ready']);
+const emit = defineEmits(['gamestart']);
 const UserGene = ref('src/assets/Genes/Gene2.png');
 const OpponentGene = ref('src/assets/Genes/Gene0.png');
-function UserReady() {
+function WaitToIngame() {
   UserGene.value = 'src/assets/Genes/Gene2_ready.png';
   setTimeout(() => {
     OpponentGene.value = 'src/assets/Genes/Gene0_ready.png';
   }, 500);
   setTimeout(() => {
-    emit('user_ready');
+    emit('gamestart');
   }, 1000);
 }
 </script>
@@ -19,7 +19,7 @@ function UserReady() {
     <div class="side">
       <div class="score">745</div>
       <div class="username">Username</div>
-      <div><img class="gene" @click="UserReady()" :src="UserGene" alt="" /></div>
+      <div><img class="gene" @click="WaitToIngame()" :src="UserGene" alt="" /></div>
       <div class="class">Acher</div>
     </div>
     <div class="center">vs</div>

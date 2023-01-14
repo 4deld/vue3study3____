@@ -2,6 +2,7 @@
 import { Game, NumberToShapeImg } from '../stores/game';
 import { storeToRefs } from 'pinia';
 import { ref, computed, watch } from 'vue';
+const emit = defineEmits(['gameend']);
 
 const gameobj = Game();
 const {
@@ -13,6 +14,7 @@ const {
   TimerStyle,
   UserGeneSrc,
   OpponentGeneSrc,
+  GameEnd,
 } = storeToRefs(gameobj);
 const { SelectSkill, Init, User_Ready } = gameobj;
 function c() {
@@ -23,7 +25,11 @@ function d() {
   gameobj.TurnEnd(); //renew by every turn
   console.log(UserHPStyle.value);
 }
-
+watch(GameEnd, () =>
+  setTimeout(() => {
+    emit('gameend');
+  }, 10000)
+);
 const UserSkills = User.value.skills;
 const OpponentSkills = Opponent.value.skills;
 Init();

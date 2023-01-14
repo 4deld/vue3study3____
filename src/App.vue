@@ -5,17 +5,19 @@ import { ref } from 'vue';
 import WaitVue from './pages/Wait.vue';
 import IngameVue from './pages/Ingame.vue';
 import EndVue from './pages/End.vue';
-enum GameProgress {
-  WAIT,
-  INGAME,
-  END,
-}
-const gameprogress = ref<GameProgress>(0);
+import Values from './stores/game.ts';
+const GameProgress = {
+  WAIT: 0,
+  INGAME: 1,
+  END: 2,
+} as const;
+
+const State = ref<Values<typeof GameProgress>>(GameProgress.WAIT);
 const GameStart = () => {
-  gameprogress.value = GameProgress.INGAME;
+  State.value = GameProgress.INGAME;
 };
 const GameEnd = () => {
-  gameprogress.value = GameProgress.END;
+  State.value = GameProgress.END;
 };
 const globalStore = useGlobalStore();
 </script>
@@ -23,9 +25,9 @@ const globalStore = useGlobalStore();
 <template>
   <div class="root" :class="{ darkTheme: globalStore.isThemeDark }">
     <main class="root__content">
-      <WaitVue v-if="gameprogress === GameProgress.WAIT" @user_ready="() => GameStart()"></WaitVue>
-      <IngameVue v-else-if="gameprogress === GameProgress.INGAME"></IngameVue>
-      <EndVue v-else="gameprogress === GameProgress.END"></EndVue>
+      <WaitVue v-if="State === GameProgress.WAIT" @gamestart="() => GameStart()"></WaitVue>
+      <IngameVue v-else-if="State === GameProgress.INGAME" @gameend="() => GameEnd()"></IngameVue>
+      <EndVue v-else="State === GameProgress.END"></EndVue>
     </main>
   </div>
 </template>

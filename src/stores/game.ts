@@ -338,10 +338,13 @@ export const Game = defineStore('game', () => {
     for (var i = 0; i < OpponentSkillCnt; i++) {
       //Skill에 ShapeCount 저장하는게 더 효율적이긴할듯
       const SkillCardShapeCount = CountShapes(Opponent.value.skills[i].resources);
-      if (OpponentSkillAvailable(OpponentCardShapeCount, SkillCardShapeCount) == 1) {
+      let bool = OpponentSkillAvailable(OpponentCardShapeCount, SkillCardShapeCount);
+      if (bool == 1) {
+        //possible
         Opponent.value.skills[i].style = 'border:0.1vw solid #B87333;';
-      } else if (OpponentSkillAvailable(OpponentCardShapeCount, SkillCardShapeCount) == 2) {
+      } else if (bool == 2) {
         Opponent.value.skills[i].style = 'border:0.1vw solid 	#ffd700;';
+        Opponent.value.selected_skill = i;
       }
     }
   }
@@ -356,7 +359,8 @@ export const Game = defineStore('game', () => {
   function TurnStart() {
     TurnCnt.value += 1;
     TurnTimerEnd.value = false;
-
+    User.value.selected_skill = -1;
+    Opponent.value.selected_skill = -1;
     //inefficient?
     for (var i = 0; i < 5; i++) {
       Opponent.value.skills[i].style = '';
@@ -372,15 +376,31 @@ export const Game = defineStore('game', () => {
   }
   function TurnEnd() {
     sec.value = 0;
+    let hp;
     if (User.value.selected_skill != -1) {
-      Opponent.value.hp -= User.value.skills[User.value.selected_skill].damage;
-      OpponentHPStyle.value = 'width:' + 16 * (1 - Opponent.value.hp / 30) + 'vw;';
+      hp = Opponent.value.hp - User.value.skills[User.value.selected_skill].damage;
+      if (hp > 0) {
+        Opponent.value.hp = hp;
+        OpponentHPStyle.value = 'width:' + 16 * (1 - Opponent.value.hp / 30) + 'vw;';
+      } else {
+        Opponent.value.hp = 0;
+        OpponentHPStyle.value = 'width:16vw;';
+      }
     }
     if (Opponent.value.selected_skill != -1) {
-      User.value.hp -= Opponent.value.skills[Opponent.value.selected_skill].damage;
-      UserHPStyle.value = 'width:' + 16 * (1 - User.value.hp / 30) + 'vw;';
+      hp = User.value.hp - Opponent.value.skills[Opponent.value.selected_skill].damage;
+      if (hp > 0) {
+        User.value.hp = hp;
+        UserHPStyle.value = 'width:' + 16 * (1 - User.value.hp / 30) + 'vw;';
+      } else {
+        User.value.hp = 0;
+        UserHPStyle.value = 'width:16vw;';
+      }
     }
-
+    UserGeneSrc.value = 'src/assets/Genes/Gene2.png';
+    UserReady.value = false;
+    OpponentGeneSrc.value = 'src/assets/Genes/Gene0.png';
+    OpponentReady.value = false;
     setTimeout(() => {
       TurnStart();
     }, 500);
@@ -419,6 +439,12 @@ export const Game = defineStore('game', () => {
       clearInterval(Timer);
     }
   });
+  // watch(
+  //   [User.value.hp, Opponent.value.hp],
+  //   ([NewUserHP, NewOpponentHP], [PrvUserHP, PrvOpponentHP]) => {
+  //     if(NewUserHP)
+  //   }
+  // );
   watch(GameEnd, (New, Old) => console.log(New, Old));
   watch(
     [UserReady, OpponentReady], //둘 중 하나만 바뀌어도 실행
